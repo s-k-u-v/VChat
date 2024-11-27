@@ -7,6 +7,7 @@ class Message {
   final String receiverName;
   final String message;
   final Timestamp timestamp;
+  final String? fileUrl;
 
   Message({
     required this.senderID,
@@ -15,6 +16,7 @@ class Message {
     required this.receiverName,
     required this.message,
     required this.timestamp,
+    this.fileUrl,
   });
 
   // conver to a map
@@ -26,6 +28,7 @@ class Message {
       'receieverName': receiverName,
       'message': message,
       'timestamp': timestamp,
+      'fileUrl': fileUrl,
     };
   }
 }

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import '../../models/message.dart';
 
@@ -7,6 +10,7 @@ class ChatService extends ChangeNotifier {
   // get instances of firestore & auth
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // get all user stream
   Stream<List<Map<String, dynamic>>> getUsersStream() {
@@ -46,11 +50,20 @@ class ChatService extends ChangeNotifier {
   }
 
   // send message
-  Future<void> sendMessage(String receiverID, message) async {
+  Future<void> sendMessage(String receiverID, message, {required File? file}) async {
     // get current user info
     final String currentUserID = _auth.currentUser!.uid;
     final String currentUserEmail = _auth.currentUser!.email!;
     final Timestamp timestamp = Timestamp.now();
+
+    String? fileUrl;
+    if (file != null) {
+      // Upload file to Firebase Storage
+      final filePath = 'messages/${currentUserID}_$receiverID/${file.path.split('/').last}';
+      final storageRef = _storage.ref().child(filePath);
+      await storageRef.putFile(file);
+      fileUrl = await storageRef.getDownloadURL(); // Get the file URL
+    }
 
     // create a new message
     Message newMessage = Message(
@@ -60,6 +73,7 @@ class ChatService extends ChangeNotifier {
       message: message,
       timestamp: timestamp,
       receiverName: 'receiverName',
+      fileUrl: fileUrl,
     );
 
     // construct chat room ID for the two users

@@ -134,11 +134,11 @@ class AuthService {
       final filePath = pickedFile.path;
 
       // Create a reference to the location in Firebase Storage
-      final storageRef = _storage.ref().child('profile_images/${getCurrentUser()!.uid}.png');
+      final storageRef = _storage.ref().child('profile_images/${getCurrentUser()!.uid}');
 
       // Upload the image to Firebase Storage
       final file = File(filePath);
-      await storageRef.putFile(file);
+      storageRef.putFile(file);
 
       // Get the download URL of the uploaded image
       final downloadUrl = await storageRef.getDownloadURL();

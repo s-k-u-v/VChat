@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:vchat/components/chat_bubble.dart';
 import 'package:vchat/components/my_textfield.dart';
@@ -32,6 +35,7 @@ class _ChatPageState extends State<ChatPage> {
 
   // for textfield focus
   FocusNode myFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -57,11 +61,11 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     myFocusNode.dispose();
     messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   // scroll controller
-  final ScrollController _scrollController = ScrollController();
   void scrollDown() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
@@ -75,7 +79,8 @@ class _ChatPageState extends State<ChatPage> {
     // if there is something inside the textfield
     if (messageController.text.isNotEmpty) {
       // send the message
-      await chatService.sendMessage(widget.receiverID, messageController.text);
+      await chatService.sendMessage(widget.receiverID, messageController.text,
+          file: null);
 
       // clear text controller
       messageController.clear();
@@ -93,6 +98,15 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   } */
+
+  Future<void> selectFile() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+    if (file != null) {
+      await chatService.sendMessage(widget.receiverID, '',
+          file: File(file.path));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +148,13 @@ class _ChatPageState extends State<ChatPage> {
           return const Text("Loading");
         }
 
+        // Automatically scroll down when new messages come in
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (snapshot.hasData) {
+            scrollDown();
+          }
+        });
+
         // return list view
         return ListView(
           controller: _scrollController,
@@ -166,10 +187,23 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               ChatBubble(
                 message: data["message"],
-                isCurrentUser: isCurrentUser,
+                isCurrentUser:
+                    data['senderID'] == authService.getCurrentUser()!.uid,
                 messadeId: doc.id,
                 userId: data['senderID'],
               ),
+              // Handle file message
+              if (data['fileUrl'] != null)
+                GestureDetector(
+                  onTap: () {
+                    // Optionally, you can implement a file viewer here
+                    print('File URL: ${data['fileUrl']}');
+                  },
+                  child: Text(
+                    'File: ${data['fileUrl']}',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
               Container(
                 padding: const EdgeInsets.only(right: 2, left: 2),
                 margin: const EdgeInsets.symmetric(
@@ -192,7 +226,7 @@ class _ChatPageState extends State<ChatPage> {
   // build message input
   Widget buildUserInput() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 25, right: 20),
+      padding: const EdgeInsets.only(bottom: 4, right: 4, left: 8, top: 8),
       //padding: const EdgeInsets.only(right: 20),
       child: Row(
         children: [
@@ -206,16 +240,16 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
 
+          // attach file button
+          IconButton(
+            icon: Icon(Icons.attach_file_sharp),
+            onPressed: selectFile,
+          ),
+
           // send button
-          Container(
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 7, 150, 12),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(Icons.send_rounded),
-              onPressed: sendMessage,
-            ),
+          IconButton(
+            icon: Icon(Icons.send_rounded),
+            onPressed: sendMessage,
           )
         ],
       ),
