@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vchat/components/user_tile.dart';
 import 'package:vchat/services/auth/auth_service.dart';
 import 'package:vchat/components/my_drawer.dart';
 import 'package:vchat/services/chat/chat_service.dart';
 
+import '../../themes/theme_provide.dart';
 import 'chat_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -25,6 +27,20 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text("USERS"),
+        actions: [
+          // Theme toggle button
+          IconButton(
+            icon: Icon(
+              Provider.of<ThemeProvide>(context).isDarkMode
+                  ? Icons.brightness_7 // Light icon
+                  : Icons.brightness_2, // Dark icon
+            ),
+            onPressed: () {
+              // Toggle theme
+              Provider.of<ThemeProvide>(context, listen: false).toggleTheme();
+            },
+          ),
+        ],
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
         elevation: 0,
@@ -67,6 +83,7 @@ class HomePage extends StatelessWidget {
       return UserTile(
         name: userData["name"] ?? "Unknown User", // Default value if name is null
         photoURL: userData["profileImage"] ?? '',
+        bio: userData["bio"] ?? '',
         onTap: () {
           // tapped on a user -> go to chat page
           Navigator.push(

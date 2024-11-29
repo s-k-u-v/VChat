@@ -74,6 +74,7 @@ class BlockedUsersPage extends StatelessWidget {
               return UserTile(
                 name: user["email"],
                 photoURL: user["profileImage"],
+                bio: user['bio'],
                 onTap: () => _showUnblockBox(context, user['uid']),
               );
             },
