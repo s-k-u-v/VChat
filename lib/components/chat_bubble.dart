@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vchat/services/chat/chat_service.dart';
 
-import '../models/file_viewer.dart';
+//import '../models/file_viewer.dart';
 import '../themes/theme_provide.dart';
 
 class ChatBubble extends StatelessWidget {
-  final String message;
+  final String? message;
   final bool isCurrentUser;
   final String messadeId;
   final String userId;
@@ -15,13 +15,13 @@ class ChatBubble extends StatelessWidget {
   const ChatBubble({
     super.key,
     this.fileUrl,
-    required this.message,
+    this.message,
     required this.isCurrentUser,
     required this.messadeId,
     required this.userId,
   });
 
-  // show File
+  /* // show File
   void _showFile(BuildContext context) {
     // Navigate to a file viewer or implement file display logic here
     Navigator.push(
@@ -30,7 +30,7 @@ class ChatBubble extends StatelessWidget {
         builder: (context) => FileViewer(fileUrl: fileUrl!),
       ),
     );
-  }
+  } */
 
   // show options
   void _showOptions(BuildContext context, String messadeId, String userId) {
@@ -170,21 +170,20 @@ class ChatBubble extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              message,
+              message ?? '',
               style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
               overflow: TextOverflow.ellipsis,
             ),
-            if (fileUrl != null) // Check if fileUrl is not null
-              GestureDetector(
-                onTap: () => _showFile(context), // Show file when tapped
-                child: Text(
-                  'View File',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+            /* if (fileUrl != null && fileUrl!.isNotEmpty) // Check if fileUrl is not null or empty
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  fileUrl!,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 200, // Adjust height as needed
                 ),
-              ),
+              ), */
           ],
         ),
       ),

@@ -4,10 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:vchat/components/chat_bubble.dart';
 import 'package:vchat/components/my_textfield.dart';
 import 'package:vchat/services/auth/auth_service.dart';
 import '../../services/chat/chat_service.dart';
+import '../../themes/theme_provide.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverName;
@@ -168,6 +170,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget buildUserListItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
+    // bubble color == theme Change
+    bool isDarkMode =
+        Provider.of<ThemeProvide>(context, listen: false).isDarkMode;
+
     final DateTime time = (data['timestamp'] as Timestamp).toDate();
 
     // is current user
@@ -185,23 +191,46 @@ class _ChatPageState extends State<ChatPage> {
                 ? CrossAxisAlignment.end
                 : CrossAxisAlignment.start,
             children: [
-              ChatBubble(
-                message: data["message"],
-                isCurrentUser:
-                    data['senderID'] == authService.getCurrentUser()!.uid,
-                messadeId: doc.id,
-                userId: data['senderID'],
-              ),
-              // Handle file message
-              if (data['fileUrl'] != null)
-                GestureDetector(
-                  onTap: () {
-                    // Optionally, you can implement a file viewer here
-                    print('File URL: ${data['fileUrl']}');
-                  },
-                  child: Text(
-                    'File: ${data['fileUrl']}',
-                    style: TextStyle(color: Colors.blue),
+              if (data['message'] != '')
+                ChatBubble(
+                  message: data["message"],
+                  isCurrentUser:
+                      data['senderID'] == authService.getCurrentUser()!.uid,
+                  messadeId: doc.id,
+                  userId: data['senderID'],
+                ),
+              // Display image if exists
+              if (data['fileUrl'] != null && data['fileUrl'].isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: isCurrentUser
+                        ? (isDarkMode
+                            ? const Color.fromARGB(255, 68, 9, 123)
+                            : const Color.fromARGB(255, 132, 53, 205))
+                        : (isDarkMode
+                            ? const Color.fromARGB(255, 16, 119, 9)
+                            : const Color.fromARGB(255, 64, 194, 55)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 5,
+                    horizontal: 25,
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          data['fileUrl'],
+                          fit: BoxFit.cover,
+                          width: 250,
+                          height: 250,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
               Container(
